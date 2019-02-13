@@ -1,0 +1,66 @@
+---
+title: "In-Class Activity: Functional Programming"
+author: "Jeremy Whorton"
+date: "February 4, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Copy your `sing_song` function (and any other functions it depends on) into the chunk below.  Change the part that says "my true love sent to me" to "my college gave to me".
+
+```{r}
+library(tidyverse)
+
+pluralize_gifts <- function(gifts, day){
+  
+  skip <- str_detect(gifts, "oo|s$|y$") | day == 1 ## which gifts do we not simply put an "s" at the end of?
+  
+  gifts <- gifts %>%  ## make the special adjustments
+    str_replace_all("oo", "ee") %>%
+    str_replace_all("y$", "ies")
+    
+  gifts[!skip] <- paste0(gifts[!skip], "s")
+  
+  return(gifts)
+} 
+
+make_phrase <- function(num, item, verb, adjective, location){
+  verb <- str_replace_na(verb, "")
+  adjective <- str_replace_na(adjective, "")
+  location <- str_replace_na(location, "")
+  phrase <- paste(num, adjective, item, verb, location, sep = " ")
+  phrase <- str_trim(phrase, side = c("right"))
+  return(phrase)
+}
+
+sing_line <- function(song, day){
+  intro <- paste("On the ", song$Day.in.Words[day], "day of Christmas, my college gave to me")
+  total_items <- ""
+  for (j in day:1) {
+    total_items <- paste(total_items, song$phrases[j], sep = ", ")
+  }
+  return(paste(intro, total_items, sep=""))
+}
+
+sing_song <- function(song) {
+  song <- song %>% 
+    mutate(Plural.Item = pluralize_gifts(Gift.Item, Day)) %>%
+    mutate(phrases = make_phrase(Day, Plural.Item, Verb, Adjective, Location))
+ str_c(map_chr(1:12, ~sing_line(song, .x), sep = ""))
+}
+
+```
+
+Then knit the file and turn it in to PolyLearn.
+
+```{r}
+### DO NOT CHANGE ANYTHING IN THIS CHUNK
+
+xmas2 <- read.csv("https://www.dropbox.com/s/ap2hqssese1ki4j/xmas_2.csv?dl=1")
+
+sing_song(xmas2)
+
+```

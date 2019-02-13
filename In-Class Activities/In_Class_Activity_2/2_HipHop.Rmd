@@ -1,0 +1,64 @@
+---
+title: "2_HipHop"
+author: "Jeremy Whorton"
+date: "1/10/2019"
+output: html_document
+---
+1. Copy the following code into an R chunk, to load the data and gain access to the tidyverse package.
+```{r}
+hiphop <- read.csv("https://raw.githubusercontent.com/kbodwin/STAT-331/master/In-Class%20Activities/Data/hiphop.csv?token=AVHCwTQaeq5UylWJxCcNN8qYww6UIaLqks5cP75ewA%3D%3D")
+library(tidyverse)
+```
+
+2. What are the variable names and types in this dataset? Give a general overview, not a full list.
+The varibale names are basic demographic, social network variables, music variables, and experiment variables. There are all types, from categorical, quantitiative and descrete.
+
+3. What are the dimensions of the data set? Do the dimensions make sense considering the information given above about the study? Explain. Hint: Examine the subj and word variables.
+```{r}
+dim(hiphop)
+```
+There are 10752 observations and 38 variables.
+
+4. Display the 64 AAE words that were tested, with no duplicates.
+```{r}
+distinct(hiphop, word)
+```
+
+5. Get an overview of the hiphop data set. Which variables contain missing values?
+```{r}
+colSums(is.na(hiphop))
+```
+numPreferredArtists and numOverallArtists
+
+6. How many missing values are in the whole data set?.
+```{r}
+sum(is.na(hiphop))
+```
+
+7. Calculate the mean and standard deviation of numPreferredArtists. Hint:Because this variable has missingvalues, you will need to set the “na.rm” argument equal to TRUE.
+```{r}
+mean(hiphop$numPreferredArtists, na.rm = TRUE)
+sd(hiphop$numPreferredArtists, na.rm = TRUE)
+```
+
+8. Write code to create a new data frame called subject19 which only contains information for subject 19. What are the dimensions of this new data frame?
+```{r}
+subject19 <- hiphop %>% filter(subj == "p19")
+dim(subject19)
+```
+
+9. Display the familarity variable of the subject 19 data frame in two different ways.
+```{r}
+subject19$familiarity
+subject19["familiarity"]
+```
+
+10. Write code to order this new data frame by familiarity from largest to smallest, retaining this sorting in the subject19 data frame (ie, you should not print out the data frame).
+```{r}
+subject19 <- subject19[with(subject19, order("familiarity"))]
+subject19
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```

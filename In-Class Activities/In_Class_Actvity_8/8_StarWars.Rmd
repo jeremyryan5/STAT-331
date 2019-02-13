@@ -1,0 +1,134 @@
+---
+title: "8_Activity_Testing"
+author: "Jeremy Whorton"
+date: "February 6, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(broom)
+
+data("starwars")
+starwars %>%
+  head()
+```
+
+# Instructions
+
+The dataset "starwars" has been loaded for you.  Take a look at it and understand the variables. 
+
+## Writing your own t-test
+
+Write a function called `run_t_test` that takes as input two vectors of numbers, and an option for the alternative hypothesis, and gives back the results of a t-test for equality of means.  You may not use the function `t.test()` except to check that your version is working correctly.
+
+```{r}
+run_t_test <- function(x, y, alternative = "two.sided"){
+  
+  x <- x[!is.na(x)]
+  y <- y[!is.na(y)]
+  
+  x_bar <- mean(x)
+  y_bar <- mean(y)
+  
+  nx <- length(x)
+  ny <- length(y)
+  
+  sdx <- sd(x)
+  sdy <- sd(y)
+  
+  se = sqrt(sdx^2/nx + sdy^2/ny)
+  t = (x_bar - y_bar) / se
+  df = min(nx, ny)
+  
+  p_val <- 2*pt(-abs(t), df = df)
+  
+  if (alternative == "less") {
+    p_val <- pt(-t, df = df)
+  } else if (alternative == "greater") {
+    p_val <- 1 - pt(t, df = df)
+  }
+  
+  return(list(test.stat = t, df = df, p.val = p_val))
+}
+bob <- c(1:15, NA)
+joe <- c(1:20, NA)
+
+run_t_test(bob, joe, "more")
+```
+
+Use your t-test function to answer the following:
+
+1. Are Humans or Droids taller?
+```{r}
+starwars_h_d <- starwars %>%
+  filter(species == "Droid" | species == "Human") %>%
+  select(species, height) %>%
+  group_by(species) %>%  
+  mutate(row_id=1:n()) %>% 
+  ungroup() %>%  
+  spread(key=species, value=height) %>%    
+  select(-row_id) 
+run_t_test(starwars_h_d$Human, starwars_h_d$Droid, "more")
+```
+There is not signifcance evidence that humans are taller than droids, thus we fail to reject the null.
+
+2. Do men or women weigh more?
+```{r}
+starwars_m_w <- starwars %>%
+  select(gender, mass) %>%
+  group_by(gender) %>%   
+  mutate(row_id=1:n()) %>% 
+  ungroup() %>%  
+  spread(key=gender, value=mass) %>%    
+  select(-row_id) 
+run_t_test(starwars_m_w$male, starwars_m_w$female, "more")
+```
+There is statistial evidence that males weigh more than females.
+
+## Chi-square tests
+
+Use the function `chisq.test()` to answer the following:
+
+1. Is there a relationship between hair color and eye color?
+```{r}
+starwars_eyes <- starwars %>% 
+  count(hair_color, eye_color) %>%
+  spread(key = hair_color, value = n) %>%
+  select(-eye_color)
+
+starwars_eyes[is.na(starwars_eyes)] <- 0
+
+starwars_eyes %>%
+  chisq.test() %>%
+  tidy()
+```
+Yes, absolutely there is a relationship between eyecolor and hair color.
+
+2. Do Droids tend to come from some homeworlds more than others?
+```{r}
+starwars_dr <- starwars %>% 
+  filter(species == "Droid") %>%
+  count(species, homeworld) %>%
+  spread(key = homeworld, value = n) %>%
+  select(-species)
+
+starwars_dr[is.na(starwars_dr)] <- 0
+
+starwars_dr %>%
+  chisq.test() %>%
+  tidy()
+```
+No, there is little relatonship between the homeworld a droid comes from. 
+
+## Many tests (optional)
+
+On which worlds is the height difference between men and women most pronounced?
+ 
+
+
+

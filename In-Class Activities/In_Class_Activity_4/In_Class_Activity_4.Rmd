@@ -1,0 +1,47 @@
+---
+title: "In_Class_Activity_4"
+author: "Jeremy Whorton"
+date: "1/24/2019"
+output: html_document
+---
+
+## In Class Actitvity 4
+
+Making a chart answering the question "Do non-black people with black friends know more about black culture?"
+
+```{r setup}
+library(tidyverse)
+
+hiphop <- read.csv("https://www.dropbox.com/s/1qqyshx5ikt9zoc/hiphop.csv?dl=1")
+```
+
+Let's look at who has black friends.
+```{r}
+black_friends <- hiphop %>% 
+  mutate(
+    has_black_friends = blackMove > 0) %>% 
+  filter(ethnic != "black") %>%
+  select(word,
+         blackMove, 
+         has_black_friends, 
+         barkley, 
+         bieber, 
+         boondocks, 
+         jayz, 
+         monique) #select only a few variables
+
+black_knowledge <- black_friends %>% 
+  distinct(subj, .keep_all = TRUE) %>%
+  group_by(has_black_friends) %>%
+  summarize_at(
+    vars(barkley, bieber, boondocks, jayz, monique), 
+    funs(mean))
+
+
+head(black_knowledge)
+```
+```{r}
+black_knowledge %>% gather(key = culture_question, value = avg_score, -has_black_friends) %>%
+  ggplot(aes(x = culture_question, y = avg_score, fill = has_black_friends)) + geom_col(position = "dodge") + ggtitle("Do non-black people with black friends know more about black culture?")
+```
+

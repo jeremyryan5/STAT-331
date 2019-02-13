@@ -1,0 +1,101 @@
+---
+title: "Questions for Class Activity 1"
+author: "Jeremy Whorton"
+date: "January 8, 2019"
+output: html_document
+---
+
+1a) How many students have filled out the survey so far?
+
+```
+86
+
+```
+
+1b) What possible issues do you see with the way your survey data was stored in the dataset `survey_orig`?
+
+```
+The dataset pulls from the most current list of responses
+
+```
+
+2a) Why do you think we might have taken made a new dataset, `free_response`?
+
+```
+Because the original data set is changing based on the new responses that are coming in
+
+```
+
+2b) Explain in words what is different about the dataset `survey` as compared to `survey_orig`.
+
+```
+It removes the responses that are free response and keeps the multiple choice responses.
+
+```
+
+### Questions:
+
+3a) What did you learn about majors and minors of 331 students?
+
+```
+Computer science majors are mostly getting data science minors while statistics students are mostly seeing minors elsewhere. Many business majors seem to be getting statistics minors.
+
+```
+
+
+3b) What did you learn about Kardashian preference and school year?
+
+```
+The younger students like Kylie and Kendall, or the younger Kardashians, where the older students either don't care or they prefer Kanye and Kim, or the older Kardashians
+
+```
+
+
+3c) What did you learn about the relationship between hot dog definitions, political preference, and major?
+
+```
+Republican statistic and computer science majors exclusively think that a hot dog is a sandwhich, while republican other majors think that is only a taco or neither. Regardless of major, about half of Democrats believe that it is neither a hot dog or a taco. The only group that doesn't partake in the debate is computer science students dont belonging to either the rupublican and democrat parties. 
+
+```
+
+
+### Questions:
+
+4a) Use your console to look at `survey_courses_1` and `survey_courses_2`.  Explain the difference between these.
+
+
+```
+In survey_courses_1 we looked just at the number of stat and CS classes taken while in survey_courses_2 we looked at the subject and the number of classes based on the subject?
+
+```
+
+
+4b) Why might we want two different styles of data?
+
+
+```
+Because there are diffrent data types
+
+```
+
+4c) What did you learn about coursework and majors?
+
+
+```
+Computer science majors take more CS classes and statistics majors
+
+```
+
+5a) What did you observe about the opinions of Cal Poly students over their course of study?
+
+```
+The young students don't know and the older you get the less postive you feel, with the exception of seniors.
+
+```
+
+5b) What fun things did you notice in the word clouds?
+
+```
+Learning and code seem to be a common, people are excited and nervous for the same type of things.
+
+```
