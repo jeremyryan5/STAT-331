@@ -1,77 +1,46 @@
 ---
-title: "Lab Assignment 4: Pokemon Challenge"
-output: pdf_document
+title: "Lab 4 - Pokemon"
+author: "Jake Leppek, Ben Fales, & Jeremy Whorton"
+date: "2/17/2019"
+output: html_document
 ---
-
-```{r global_options, include=FALSE}
-knitr::opts_chunk$set(fig.width=6, fig.height=4, fig.path='Figs/',
-                      echo=TRUE, warning=FALSE, message=FALSE,eval=TRUE)
-```
-
-# Instructions
-
-Pokémon are creatures in a series of video games, who battle each other for victory.  The following will load a dataset of 721 Pokémon, and their various qualities:
 
 ```{r}
 library(tidyverse)
-
 pokes <- read.csv("https://www.dropbox.com/s/i0lwxgv86eaoq4o/pokemon.csv?dl=1")
 ```
 
 
-The variables in this dataset are as follows:
-
-* `Number`: The "Pokédex" number of the Pokémon. (Essentially meaningless.)
-* `Name`:  The name of the Pokémon
-* `Type_1`:  The Pokémon's primary type
-* `Type_2`:  The Pokémon's secondary type (some do not have this)
-* `Total`: The total of all fight qualities, which include:
-    + `HP`: "Hit Points", or how good a Pokémon is at staying alive.
-    + `Attack`:  How strong the Pokémon's attack moves are.
-    + `Defense`:  How good the Pokémon is at blocking attacks.
-    + `Sp_Atk`: The strength of the Pokémon's special attack move.
-    + `Sp_Def`: The strength of the Pokémon's special block move.
-    + `Speed`: How fast the Pokémon is.
-* `Height_m`: The height of the Pokémon.
-* `Weight_kg`: The weight of the Pokémon.
-* `Catch_Rate`: How easy the Pokémon is to catch.
-
-Your task is, quite simply, to find some interesting insight into what makes a Pokémon a good fighter.  You will need to turn in an html report of 2 pages or less, nicely formatted and generated from R Markdown.  Your report should include:
-
-1. At least one plot, with proper labels.
-
-2. At least one statistical analysis or model.
-
-3. Proper discussion and interpretation of all work.
-
-You may work with **one or two** other people, i.e., groups of up to 3.  If you do, you should **each** turn in an html file on PolyLearn; however, these should be identical and should have all group members' names at the top.
-
-Extra credit will be given to the person/group with the best writeup, measured both by presentation style and by intriguing insight, as judged by Dr. Bodwin and Dr. Glanz.
-
-\pagebreak
-
-# Example
-
-For example, a very simple analysis might include:
-
+Plot: 
 ```{r}
-best_pokes <- pokes %>% 
-  group_by(Type_1) %>%
-  summarize(avg_Total = mean(Total)) 
+pokes %>%
+  ggplot(aes(x = Catch_Rate, y = Total, color = Type_1)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_wrap(~Type_1)
+```
+#####
 
-best_pokes %>%
-  top_n(3, avg_Total)
+Insightful analysis of graph from above
 
-best_pokes %>% 
-  top_n(10, avg_Total) %>% 
-  mutate(
-    Type = fct_reorder(Type_1, avg_Total)
-  ) %>%
-  ggplot(aes(x = Type, y = avg_Total, fill = Type)) + geom_col()
+Overall, there seems to be a negative association between Catch Rate and the Total fighting abilities of a Pokemon. In other words, the harder that it is to catch a pokemon, the better they're total fighting abilities will be. This seems to be consistent across all Types of pokemon. Although it may not be significant for flying types as there are only three observations of flying type pokemon.
+
+######
+
+
+
+Statistical Analysis: 
+```{r}
+poke_test <- pokes %>%
+   mutate(Number_of_Types = case_when(
+         Type_2 == "" ~ "1 Type",
+         TRUE ~ "2 Types" )) 
+
+t.test(Total ~ Number_of_Types, data = poke_test)
 ```
 
-Conclusion:  Dragon type Pokémon have the best fighting stats on average.
+From this Two Sample t-test with an alpha level of .05, we can see that our test yields a p-value of 0.0004692. From this p-value we can conclude that there is evidence that pokemon that have two types instead of only one type have a higher avg "Total" value that is statistically higher, on average. 
 
-You would, of course, need more discussion than this!  And your insight will hopefully be more interesting and nuanced than mine.
+This difference makes sense logically because having more than one type most likely gives the pokemon the advantage having a strong defensive score against more types of pokemon. 
 
-
+Alternatively having two types allows for a pokemon to have more types of attacks, which is also advantageous and would explain the higher average total score.
