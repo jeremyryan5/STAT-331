@@ -1,0 +1,147 @@
+---
+title: "Lab 5 - Simulations"
+author: "Jeremy Whorton"
+date: "2/26/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE)
+library(tidyverse)
+```
+
+## Normal Approximation to the Binomial
+Recall that the Normal Approximation to the Binomial states that Binomial distributions are approximately Normally distributed, for a large enough number of trials and probability of success that is not close to 0% or 100%.
+
+1) Generate 1000 samples from a Binomial distribution with 20 trials and a 90% probability of success.
+```{r binom}
+binom_samples <- data.frame(
+  binom1 = rbinom(1000, size = 20, prob = .9)
+)
+```
+
+  a) Plot a histogram of these samples.
+```{r binom hist}
+ggplot(binom_samples, aes(x=binom1)) + geom_histogram(bins=20)
+```
+  
+  b) Plot a density from these samples.
+```{r binom density}
+ggplot(binom_samples, aes(x=binom1)) + geom_density()
+```
+
+2) Generate 1000 samples each from a Binomial distribution with
+  a) 20 trials, 90% chance of success 
+  b) 20 trials, 70% chance of success 
+  c) 20 trials, 50% chance of success
+Plot the densities of these results on top of each other in the same plot. .
+```{r three binom probs}
+probs = c(.9, .7, .5)
+three_binoms <- map_dfc(probs, ~rbinom(1000, size = 20, prob = .x))
+names(three_binoms) <- as.character(probs)  
+three_binoms <- three_binoms %>%
+  gather(key = "Success", value = "Samples")
+
+ggplot(three_binoms, aes(x=Samples, fill=Success)) + geom_density(alpha=0.5)
+```
+
+3) Generate 1000 samples each from a Binomial distribution with
+  a) 20 trials, 90% chance of success 
+  b) 50 trials, 90% chance of success
+  c) 100 trials, 90% chance of success
+Convert these to sample proportions; i.e., if you observe a sample of 15 successes in 20 trials, that should be a sample proportion of 15/20 = 0.75. Plot the densities of the sample proportions on top of each other in the same plot.
+```{r three binom trials}
+trials = c(20, 50, 100)
+three_trials <- map_dfc(trials, ~rbinom(1000, size = .x, prob = .9))
+names(three_trials) <- as.character(trials)
+three_trials <- three_trials %>%
+  gather(key = "Trials", value = "Samples") %>%
+  mutate(
+    Samples = Samples/strtoi(Trials)
+  )
+
+ggplot(three_trials, aes(x=Samples, fill=Trials)) + geom_density(alpha=0.5)
+```
+
+4) Convert your code for generating and plotting the sample proportions to a function that takes two arguments: trials (a vector) and prob_success (a single value). The function should then plot the densities of the sample proportions for every value of trials that is supplied.
+```{r trials and prob function}
+gen_binom <- function(trials, prob_success) {
+  trials_df <- map_dfc(trials, ~rbinom(1000, size = .x, prob = prob_success))
+  names(trials_df) <- as.character(trials)
+  trials_df <- trials_df %>%
+    gather(key = "Trials", value = "Samples") %>%
+    mutate(
+      Samples = Samples/strtoi(Trials)
+    )
+  
+  ggplot(trials_df, aes(x=Samples, fill=Trials)) + geom_density(alpha=1/length(trials))
+}
+```
+
+5) Use your function and the resulting plots to come up with a “rule” for when the Normal Approximation to the Binomial makes sense.
+```{r trials at .5}
+gen_binom(c(10,20,30,40,50,60,70,80,90,100), .5)
+```
+```{r trials at .95}
+gen_binom(c(70,80,90,100, 200), .95)
+```
+
+When the probability of success is near .5, it takes far less trials to approximate normal(25-35 trials); however, when the probability of success is farther out, towards the eddges, it takes upwards of 80 trials to generate a normal curve. A general rule would be a long the lines of:
+  
+  trials to normal = (abs(prob - .5)*100)+30
+
+##The Central Limit Theorem
+Recall that the Central Limit Theorem tells us about the distribution of the sample mean, which is called the sampling distribution. As sample size becomes large, the sampling distribution approaches a normal distribution, and the standard deviation of the sampling distribution decreases. The mean of the sampling distribution is equal to the population mean.
+
+Not all statistics have such nice theory and machinery to take advantage of! In the following exercise, you will explore the sampling distributions of a few different statistics: mean, median, standard deviation, range, and third quartile. (Note that the function range() in R does not compute the range as we intend it here.)
+
+1. Suppose our population is Normal with mean 50 and standard deviation 10.
+  a) Simulate 1000 samples of size 30 from this population. For each sample, compute the mean, median, standard deviation, range, and third quartile. Store these in together in a data frame.
+```{r normal distribution statistics}
+samples = replicate(1000, rnorm(30, mean = 0, sd = 1), simplify = FALSE)
+
+my_stats <- data.frame(
+  mean = map_dbl(samples, mean),
+  median = map_dbl(samples, median),
+  std = map_dbl(samples, sd),
+  range = map_dbl(samples, ~max(.x) - min(.x)),
+  third = map_dbl(samples, ~quantile(.x, .75))
+)
+```
+
+  b) Plot the sampling distribution (histogram) of the means.
+```{r plot norm mean}
+ggplot(my_stats, aes(x=mean)) + geom_histogram(binwidth = .05)
+```
+
+  c) Plot the sampling distributions of the other four statistics in (four separate graphs) of a single plotting window. Be sure to label things appropriately.
+```{r plot norm others}
+my_stats %>%
+  gather(key = "Stat", value = "Value") %>%
+  filter(Stat != "mean") %>%
+  ggplot(aes(x=Value)) + geom_histogram(binwidth = .05) + facet_wrap(~Stat)
+```
+
+2) Repeat (a)-(c) for a Uniform distribution with minimum of 10 and maximum of 90.
+```{r unified dist stats}
+unif_samples = replicate(1000, runif(30, min = 10, max = 90), simplify = FALSE)
+
+unif_stats <- data.frame(
+  mean = map_dbl(unif_samples, mean),
+  median = map_dbl(unif_samples, median),
+  std = map_dbl(unif_samples, sd),
+  range = map_dbl(unif_samples, ~max(.x) - min(.x)),
+  third = map_dbl(unif_samples, ~quantile(.x, .75))
+)
+```
+
+```{r unified graphs}
+unif_stats %>%
+  gather(key = "Stat", value = "Value") %>%
+  ggplot(aes(x=Value)) + geom_histogram(binwidth = 1) + facet_wrap(~Stat)
+```
+
+3) Based on the above, do you think that the Central Limit Theorem applies to any of the other statistics besides the mean? Justify your answer.
+
+Based on the above graphs, it would appear that the Central Limit Theorem  onldoesn't apply to only range and third quartile. However, it only appears to apply to median beause our dataset isn't skewed. If we were to take the median of 1000 distributions of number of people in a house hold, a naturally right skewed distribution, the median would also be right skewed. The only reason this median appears to be normally distributed is due to the normal distribution we took the samples from. 
+

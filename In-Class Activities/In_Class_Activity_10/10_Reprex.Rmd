@@ -1,0 +1,46 @@
+---
+title: "10_Reprex"
+author: "Jeremy Whorton"
+date: "2/26/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r reprex}
+library(reprex)
+```
+
+```{r nba}
+#nba <- read.csv("/Users/kbodwin/Dropbox/Teaching/331/Data/NBA_player_of_the_week.csv")
+
+library(tidyverse)
+
+nba <- data.frame(
+  Height = c("5-9", "177cm")
+)
+
+fix_height <- function(h){
+  
+  if (str_detect(h, "-")) {
+    
+    fi <- unlist(str_split(h, "-"))
+    h <- as.numeric(fi[1])*12 + as.numeric(fi[2])
+    
+  } else if (str_detect(h, "cm")) {
+    
+    h <- str_replace(h, "cm", "")
+    h <- as.numeric(h)*0.3937
+    
+  }
+  
+  return(h)
+  
+}
+
+
+height_inches = fix_height(nba$Height)
+```
+

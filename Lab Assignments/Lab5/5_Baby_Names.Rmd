@@ -1,0 +1,101 @@
+---
+title: "Lab 5 - Baby Names"
+author: "Jeremy Whorton"
+date: "2/24/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval = TRUE)
+library(tidyverse)
+library(readxl)
+library(modelr)
+```
+
+# Lab 5 - Names from Friends
+
+I wanted to examine the way that pop culture impacts the way that parents name their kids. I began to think about staples of our culture over the past few years and settled on the TV show Friends. Friends came out in 1994 and was on air for 10 years. The show contained characters that were named Ross, Rachel, Monica, Chandler, Joey and Phoebe.
+
+# The Data
+
+Our dataset in this lab concerns baby names and their popularity over time.  The dataset "babies_ca.xlsx" has information about baby names in California from 1940-2016.  For each year, and for each name with at least 50 recorded babies born, we are given the counts of how many babies had that name. 
+
+We started by getting just the baby names from the TV show. Here are the total counts of each of them, from 1940-2016.
+
+```{r data, echo=FALSE}
+my_path <- "../../Data/Babyname_Datasets/"
+babies <- read_excel(paste0(my_path, "babies_ca.xlsx"))
+all_friends <- babies %>%
+  filter(Name == "Chandler" | Name == "Phoebe" | Name == "Joey" | Name == "Ross" | Name == "Rachel" | Name == "Monica") 
+friends <- babies %>%
+  filter(Name == "Chandler" | Name == "Phoebe" | Name == "Joey" | Name == "Ross") 
+```
+
+```{r counts, echo=FALSE}
+all_friends %>%
+  group_by(Name) %>%
+  summarize(total = sum(Count))
+```
+
+As you can see, Monica and Rachel are far more common than any of the others and they will make it harder to see the trends in less common names that are more susceptible to being impacted by pop culture.
+
+
+# Trend in Names over time
+
+Let's take a look at how the names from the TV show have changed over time.
+
+```{r kelly plot, echo=FALSE}
+
+ggplot(friends, aes(x = Year, y = Count, color = Name)) + geom_line() + facet_wrap(~Gender)
+
+```
+
+It is espescially evident in Females, but since the show began in 94, there seem to be some drastic increases in babies named from the show. 
+
+Since there appears to be an increase in babies named Chandler in both boys and girls, let's look at them individually.
+
+```{r gender plot, echo=FALSE}
+chandlers <- friends %>%
+  filter(Name == "Chandler")
+ggplot(chandlers, aes(x = Year, y = Count, color = Gender)) + geom_line()
+```
+
+This is incredibly interesting. The name Chandler was basically non-existent until unitl the early 90's then seemed to become incredibly popular for about 10 years, the exact same time as the show airing. However, it is anything but a linear model, so for that, we will look at the name Phoebe.
+
+# Is Pheobe becoming more popular?
+
+Lets begin with getting the Phoebe's from 1990 and beyond. I created a linear model with the year as the explanatory variable, and the number of Phoebe's as the response.
+
+```{r filter, echo=FALSE}
+phoebes_90 <- friends %>%
+  filter(Year >= 1990) %>%
+  filter(Name == "Phoebe")
+
+model <- lm(Count ~ Year, data=phoebes_90)
+summary(model)
+```
+
+It does seem that the name Phoebe has increased in popularity since the beginning of the 90's. Every year appears to being a 5 name increase in babies named Phoebe in California.
+
+Let's plot this linear model.
+
+```{r linear model plot, echo=FALSE}
+
+ggplot(phoebes_90, aes(x = Year, y = Count)) +
+  geom_point() + 
+  stat_smooth(method = "lm")
+```
+
+We should also check out the *residuals*.
+
+```{r residuals, echo=FALSE}
+phoebes_90 <- phoebes_90 %>%
+  add_predictions(model) %>%
+  mutate(residual = Count - pred)
+
+ggplot(phoebes_90, aes(x = Year, y = residual)) + geom_point()
+```
+
+The residual plot don't seem to have much of a pattern, thus a linear model seems to be a decent fit to predicting the number of Phoebe's in California since 1990. However, the residuals are very large which is cause for concern.
+
+We conclude that for every year increase, there is a 5.0342 increase in babies named Phoebe in California. Thus we can say that Phoebe is becoming more popular and there may be correlation the impact that pop culture has on namiing of babies.
